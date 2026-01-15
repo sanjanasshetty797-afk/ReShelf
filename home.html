@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Home | LeafyLibrary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body {
+      background-image: url("library2.jpg");
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+
+    .overlay {
+      background: rgba(0, 0, 0, 0.65);
+      min-height: 100vh;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="bg-green-900/80 backdrop-blur-md text-white px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+  
+  <!-- Logo -->
+  <h1 onclick="location.href='home.html'"
+      class="text-2xl font-bold cursor-pointer">
+    🌿 LeafyLibrary
+  </h1>
+
+  <!-- Menu -->
+  <div class="flex gap-6 items-center text-sm md:text-base">
+
+    <button onclick="location.href='requests.html'"
+      class="hover:text-green-300 transition">
+      🛒 My Requests
+    </button>
+
+    <button onclick="location.href='home.html'"
+      class="hover:text-green-300 transition">
+      🏠 Home
+    </button>
+
+    <button onclick="location.href='help.html'"
+      class="hover:text-green-300 transition">
+      ❓ Help Center
+    </button>
+
+    <button onclick="logout()"
+      class="bg-red-500 px-4 py-1 rounded hover:bg-red-600 transition">
+      Logout
+    </button>
+
+  </div>
+</nav>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<div class="overlay">
+
+  <!-- NAVBAR -->
+  <nav class="flex justify-between items-center px-10 py-5 text-white">
+    <h1 class="text-2xl font-bold">🌿 LeafyLibrary</h1>
+    <div class="flex gap-6 items-center">
+    <a href="home.html" class="hover:underline">Home</a>
+    <a href="marketplace.html" class="hover:underline">Marketplace</a>
+    <a href="list-book.html" class="hover:underline">List Book</a>
+    <a href="requests.html" class="hover:underline">My Requests</a>
+
+    <button id="logout"
+      class="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600 transition">
+      Logout
+    </button>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="px-10 py-16 text-white">
+    <h2 class="text-4xl font-bold mb-2">
+      Welcome back 📖
+    </h2>
+    <p class="text-gray-200 mb-10">
+      Reuse books. Save money. Save trees 🌱
+    </p>
+
+    <!-- CARDS -->
+    <div class="grid md:grid-cols-2 gap-8 max-w-4xl">
+
+      <a href="list-book.html"
+        class="glass p-6 rounded-2xl hover:scale-105 transition">
+        <h3 class="text-xl font-semibold mb-2">➕ List a Book</h3>
+        <p class="text-gray-200">
+          Exchange or sell books you don’t need anymore.
+        </p>
+      </a>
+
+      <a href="marketplace.html"
+        class="glass p-6 rounded-2xl hover:scale-105 transition">
+        <h3 class="text-xl font-semibold mb-2">🛒 Marketplace</h3>
+        <p class="text-gray-200">
+          Discover books shared by others.
+        </p>
+      </a>
+
+    </div>
+  </main>
+
+</div>
+
+<script>
+async function initDashboard() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) window.location.href = "auth.html";
+}
+
+document.getElementById("logout").onclick = async () => {
+  await supabaseClient.auth.signOut();
+  window.location.href = "auth.html";
+};
+
+initDashboard();
+</script>
+
+</body>
+</html>

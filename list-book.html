@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>List a Book | LeafyLibrary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Lora', serif;
+      background: url('library2.jpg') center/cover no-repeat;
+      min-height: 100vh;
+      color: #F5F2E7;
+    }
+    .overlay {
+      background: rgba(0,0,0,0.6);
+      min-height: 100vh;
+      padding: 1rem 2rem;
+    }
+    form {
+      background: rgba(1, 49, 27, 0.15);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(1, 63, 36, 0.2);
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      max-width: 400px;
+      margin: 2rem auto;
+    }
+    form button:hover {
+      transform: scale(1.03);
+      transition: 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl =  "https://lxtuzbhlzlcxiincfcil.supabase.co";// replace
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dHV6YmhsemxjeGlpbmNmY2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMDMzOTMsImV4cCI6MjA4Mzc3OTM5M30.yo_98AYwWSbfK8TAidZm2ff93UGVUo6gt-i88qDnjdE"; // replace
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+</script>
+
+<div class="overlay">
+  <h1 class="text-3xl font-bold text-center">List a Book 🌿</h1>
+
+  <form id="bookForm" class="space-y-4">
+    <input id="title" placeholder="Book Title" required class="w-full p-2 border rounded">
+    <input id="author" placeholder="Author" required class="w-full p-2 border rounded">
+    <select id="type" class="w-full p-2 border rounded">
+      <option value="exchange">Exchange</option>
+      <option value="sell">Sell</option>
+    </select>
+    <input id="price" type="number" placeholder="Price (₹ if selling)" class="w-full p-2 border rounded">
+    <button class="w-full bg-green-700 text-white py-2 rounded">Add Book</button>
+  </form>
+</div>
+
+<script>
+  // Protect page
+  supabaseClient.auth.getUser().then(({ data }) => {
+    if(!data.user) window.location.href = "auth.html";
+  });
+
+  const form = document.getElementById("bookForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = (await supabaseClient.auth.getUser()).data.user;
+
+    const { error } = await supabaseClient.from("books").insert({
+      title: document.getElementById("title").value,
+      author: document.getElementById("author").value,
+      type: document.getElementById("type").value,
+      price: document.getElementById("price").value || null,
+      owner_id: user.id
+    });
+
+    if(error){
+      alert("Error listing book: " + error.message);
+      return;
+    }
+
+    alert("Book listed successfully 🌿");
+    window.location.href = "home.html";
+  });
+</script>
+<script>
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = "auth.html";
+  }
+</script>
+
+
+</body>
+</html>

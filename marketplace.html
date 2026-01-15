@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marketplace | LeafyLibrary</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: 'Lora', serif;
+    background: url('library2.jpg') center/cover no-repeat;
+    min-height: 100vh;
+    color: #F5F2E7;
+  }
+  .overlay {
+    background: rgba(0,0,0,0.6);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+  nav {
+    backdrop-filter: blur(10px);
+    background-color: rgba(46,78,59,0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .glass-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: float 6s ease-in-out infinite;
+  }
+  .glass-card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.6);
+  }
+  @keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+    100% { transform: translateY(0); }
+  }
+  #quote {
+    text-align: center;
+    font-style: italic;
+    color: #D4AF37;
+    margin: 1rem 0 2rem;
+  }
+</style>
+</head>
+<body>
+<div class="overlay">
+
+  <!-- NAVBAR -->
+  <nav>
+    <h1 class="text-2xl font-bold cursor-pointer" onclick="location.href='home.html'">🌿 LeafyLibrary</h1>
+    <div class="flex items-center gap-4">
+      <span id="userEmail"></span>
+      <button id="logout" class="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition">Logout</button>
+    </div>
+  </nav>
+
+  <h1 class="text-3xl font-bold text-center mt-6">Marketplace 📚</h1>
+  <p id="quote">“A room without books is like a body without a soul.”</p>
+
+  <div id="books" class="grid gap-6 md:grid-cols-2 mt-6"></div>
+  <p id="empty" class="text-center text-gray-300 mt-10 hidden">No books available 😢</p>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // Replace with your own Supabase keys
+  const supabaseUrl = "https://lxtuzbhlzlcxiincfcil.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4dHV6YmhsemxjeGlpbmNmY2lsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgyMDMzOTMsImV4cCI6MjA4Mzc3OTM5M30.yo_98AYwWSbfK8TAidZm2ff93UGVUo6gt-i88qDnjdE";
+  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+  
+async function protectPage() {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  if (!sessionData.session) {
+    window.location.href = "auth.html";
+    return null;
+  }
+  const user = sessionData.session.user;
+  document.getElementById("userEmail").textContent = user.email;
+  return user;
+}
+
+async function loadBooks() {
+  const user = await protectPage();
+  if (!user) return;
+
+  const { data: books, error } = await supabaseClient
+    .from("books")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("books");
+  const emptyMsg = document.getElementById("empty");
+  container.innerHTML = "";
+
+  if (error) {
+    console.error(error);
+    container.innerHTML = `<p class="text-center">Error loading books: ${error.message}</p>`;
+    return;
+  }
+
+  if (!books || books.length === 0) {
+    emptyMsg.classList.remove("hidden");
+    return;
+  }
+  emptyMsg.classList.add("hidden");
+
+  books.forEach(book => {
+    const card = document.createElement("div");
+    card.className = "glass-card";
+    card.innerHTML = `
+      <h3 class="font-bold text-xl mb-1">${book.title}</h3>
+      <p class="mb-1">${book.author}</p>
+      <p class="text-green-300 mb-2">${book.type === "sell" ? "₹" + book.price : "Available for Exchange"}</p>
+      <button class="mt-2 bg-green-600 text-white px-4 py-1 rounded hover:scale-105 transition">Request</button>
+    `;
+    container.appendChild(card);
+
+    const requestBtn = card.querySelector("button");
+    requestBtn.addEventListener("click", async () => {
+      // Insert request
+      const { error: reqError } = await supabaseClient
+        .from("requests")
+        .insert({
+          book_id: book.id,
+          requester_id: user.id,
+          owner_id: book.owner_id,
+          type: book.type,
+          price: book.type === "sell" ? book.price : null,
+          status: "pending",
+          created_at: new Date().toISOString()
+        });
+
+      if (reqError) {
+        alert("Error sending request: " + reqError.message);
+        return;
+      }
+
+      alert("Request sent 🌿");
+
+      // Disable button
+      requestBtn.innerText = "Requested";
+      requestBtn.disabled = true;
+      requestBtn.classList.add("opacity-50", "cursor-not-allowed");
+
+      // Redirect to confirm page
+      if (book.type === "sell") {
+        window.location.href = `sell-confirm.html?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}&price=${book.price}`;
+      } else {
+        window.location.href = `exchange-confirm.html?title=${encodeURIComponent(book.title)}&author=${encodeURIComponent(book.author)}`;
+      }
+    });
+  });
+}
+
+// Initial load
+loadBooks();
+
+// Logout
+document.getElementById("logout").onclick = async () => {
+  await supabaseClient.auth.signOut();
+  window.location.href = "auth.html";
+};
+
+
+</script>
+</body>
+</html>

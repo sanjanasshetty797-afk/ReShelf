@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Confirm Purchase | LeafyLibrary</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body {
+    font-family: 'Lora', serif;
+    background: url('library2.jpg') center/cover no-repeat;
+    min-height: 100vh;
+    color: #F5F2E7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+  }
+  .card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 400px;
+    text-align: center;
+  }
+  button {
+    background: #2E4E3B;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+  }
+  button:hover { background: #3f7054; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h2 class="text-2xl font-bold mb-2">Confirm Purchase 🌿</h2>
+  <p id="title" class="text-xl font-semibold mb-1"></p>
+  <p id="author" class="mb-2"></p>
+  <p id="price" class="mb-4"></p>
+
+  <h3 class="mb-2 font-semibold">Payment Options:</h3>
+  <ul class="mb-4">
+    <li>💳 Credit / Debit Card</li>
+    <li>🅿️ UPI</li>
+    <li>🏦 Net Banking</li>
+  </ul>
+
+  <button id="confirmBtn">Confirm & Finish</button>
+</div>
+
+<script>
+  // Get URL params
+  const params = new URLSearchParams(window.location.search);
+  const title = params.get("title");
+  const author = params.get("author");
+  const price = params.get("price");
+
+  document.getElementById("title").textContent = title;
+  document.getElementById("author").textContent = "By: " + author;
+  document.getElementById("price").textContent = "Total: ₹" + price;
+
+  document.getElementById("confirmBtn").onclick = () => {
+    alert(`Payment confirmed for "${title}"! 🌿`);
+    window.location.href = "home.html";
+  };
+</script>
+</body>
+</html>

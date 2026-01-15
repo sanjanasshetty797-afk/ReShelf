@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login | LeafyLibrary</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-green-50">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+
+<form id="authForm" class="bg-green-100 p-8 rounded-2xl shadow-lg space-y-6 w-96">
+  <h2 class="text-3xl font-bold text-green-900 text-center mb-4">LeafyLibrary 🌿</h2>
+  
+  <input id="email" type="email" placeholder="Email" required class="w-full p-3 border rounded border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400">
+  <input id="password" type="password" placeholder="Password" required class="w-full p-3 border rounded border-green-300 focus:outline-none focus:ring-2 focus:ring-green-400">
+  
+  <button type="submit" class="w-full bg-green-700 text-white py-3 rounded-xl font-semibold hover:bg-green-800 transition">Continue</button>
+</form>
+
+<script>
+const form = document.getElementById("authForm");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  // session exists → go home
+  window.location.href = "home.html";
+});
+</script>
+<script>
+  async function logout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = "auth.html";
+  }
+</script>
+
+
+
+</body>
+</html>
