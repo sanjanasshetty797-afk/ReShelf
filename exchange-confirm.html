@@ -2,62 +2,91 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Confirm Exchange | LeafyLibrary</title>
+<title>Exchange Confirm | ReShelf</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body {
-    font-family: 'Lora', serif;
-    background: url('library2.jpg') center/cover no-repeat;
-    min-height: 100vh;
-    color: #F5F2E7;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-  }
-  .card {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 1rem;
-    padding: 2rem;
-    max-width: 400px;
-    text-align: center;
-  }
-  button {
-    background: #2E4E3B;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    margin-top: 1rem;
-  }
-  button:hover { background: #3f7054; }
+body {
+  background: url('library2.jpg') center/cover no-repeat;
+  background-size: cover;
+  min-height: 100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:'Lora', serif;
+  color:#F5F2E7;
+}
+.glass {
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  border:1px solid rgba(255,255,255,0.2);
+  padding:2rem;
+  border-radius:1rem;
+  max-width:400px;
+  text-align:center;
+  box-shadow:0 8px 20px rgba(0,0,0,0.4);
+}
+.btn {
+  margin-top:1.5rem;
+  background-color:#22c55e;
+  padding:0.75rem 1.5rem;
+  border-radius:0.5rem;
+  font-weight:bold;
+  cursor:pointer;
+  transition:background 0.3s;
+}
+.btn:hover { background-color:#16a34a; }
+h2 { font-size:1.8rem; margin-bottom:1rem; color:#D4AF37; }
+p { margin:0.5rem 0; }
+span { font-weight:bold; color:#22c55e; }
 </style>
 </head>
 <body>
-<div class="card">
-  <h2 class="text-2xl font-bold mb-2">Confirm Exchange 🌿</h2>
-  <p id="title" class="text-xl font-semibold mb-1"></p>
-  <p id="author" class="mb-2"></p>
 
-  <p class="mb-4">This book will be exchanged. No payment needed!</p>
-
-  <button id="confirmBtn">Confirm Exchange</button>
+<div class="glass">
+  <h2>Exchange Confirmed ✅</h2>
+  <p id="bookTitle">Book: </p>
+  <p id="bookAuthor">Author: </p>
+  <p>Location: <span id="location"></span></p>
+  <p>Time: <span id="time"></span></p>
+  <button class="btn" onclick="window.location.href='home.html'">Back to Home</button>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <script>
-  // Get URL params
-  const params = new URLSearchParams(window.location.search);
-  const title = params.get("title");
-  const author = params.get("author");
+async function loadExchangeInfo() {
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  if (!sessionData.session) { window.location.href = "auth.html"; return; }
 
-  document.getElementById("title").textContent = title;
-  document.getElementById("author").textContent = "By: " + author;
+  const urlParams = new URLSearchParams(window.location.search);
+  const requestId = urlParams.get("request");
+  if (!requestId) { alert("Invalid request ❌"); return; }
 
-  document.getElementById("confirmBtn").onclick = () => {
-    alert(`Exchange confirmed for "${title}"! 🌿`);
-    window.location.href = "home.html";
-  };
+  const { data: req, error } = await supabaseClient
+    .from("requests")
+    .select("*")
+    .eq("id", requestId)
+    .single();
+
+  if (error || !req) { alert("Request not found ❌"); console.error(error); return; }
+
+  const { data: book } = await supabaseClient
+    .from("books")
+    .select("*")
+    .eq("id", req.book_id)
+    .single();
+
+  document.getElementById("bookTitle").textContent = `Book: ${book.title}`;
+  document.getElementById("bookAuthor").textContent = `Author: ${book.author}`;
+  document.getElementById("location").textContent = req.exchange_location || "Not assigned";
+  document.getElementById("time").textContent = req.exchange_time || "Not assigned";
+}
+
+loadExchangeInfo();
 </script>
+
 </body>
 </html>
+
+
+
